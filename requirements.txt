@@ -1,0 +1,12 @@
+# Core Libraries
+python-dotenv
+Pillow              # For image manipulation (saving, loading)
+requests            # For GitHub API calls
+google-generativeai  # For Gemini API
+
+# For Search Agent
+sentence-transformers
+numpy
+faiss-cpu
+selenium
+webdriver_manager
