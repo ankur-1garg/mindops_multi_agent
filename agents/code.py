@@ -6,34 +6,42 @@ import base64
 import google.generativeai as genai
 from .base_agent import BaseAgent, StepResult
 from state.workflow_state import WorkflowState
+from utils.logger import setup_logger
 import config
+
+logger = setup_logger(__name__)
 
 
 class CodeAgent(BaseAgent):
     """Specializes in generating code modifications using Gemini."""
 
-    def __init__(self):
+    def __init__(self, repo_path: str = None):
         genai.configure(api_key=config.GOOGLE_API_KEY)
         # Using the specified LLM model
         self.llm = genai.GenerativeModel(config.CODE_LLM_MODEL)
+        self.repo_path = repo_path
 
     async def execute(self, state: WorkflowState) -> StepResult:
-        print("💻 Code Agent (Gemini): Generating code modification...")
+        logger.info(
+            f"[{state.workflow_id}] [Code] Agent: Starting code modification...")
 
         source_file = state.screen.get('source_file')
         if not source_file:
+            logger.error(
+                f"[{state.workflow_id}] No source file found in current state")
             return StepResult(success=False, message="No source file found in the current state.")
 
         # Get the file content from GitHub's raw content URL
-        correct_path = "src/app/site/page.tsx"  # This is the main landing page
-        url = f"https://raw.githubusercontent.com/{config.GITHUB_REPO_OWNER}/{config.GITHUB_REPO_NAME}/main/{correct_path}"
-        print(f"Fetching file from {url}")
+        url = f"https://raw.githubusercontent.com/{config.GITHUB_REPO_OWNER}/{config.GITHUB_REPO_NAME}/{config.GITHUB_BRANCH}/{source_file}"
+        logger.info(f"[{state.workflow_id}] Fetching file from {url}")
         headers = {
             "Authorization": f"token {config.GITHUB_TOKEN}"} if config.GITHUB_TOKEN else {}
 
         try:
             response = requests.get(url, headers=headers)
             if response.status_code != 200:
+                logger.error(
+                    f"[{state.workflow_id}] Failed to fetch file from GitHub. Status: {response.status_code}")
                 return StepResult(success=False, message=f"Failed to fetch file from GitHub. Status: {response.status_code}")
 
             original_code = response.text  # Raw content doesn't need base64 decoding
@@ -77,6 +85,10 @@ class CodeAgent(BaseAgent):
                        "modified_code": modified_code}
             state.code_changes = changes
 
+            logger.info(
+                f"[{state.workflow_id}] Successfully generated code modifications")
             return StepResult(success=True, data=changes, message="Code generated successfully with Gemini.")
         except Exception as e:
+            logger.error(
+                f"[{state.workflow_id}] Failed to generate code: {str(e)}", exc_info=True)
             return StepResult(success=False, message=f"Failed to generate code with Gemini: {e}")

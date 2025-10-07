@@ -3,7 +3,11 @@ import json
 import google.generativeai as genai
 from .base_agent import BaseAgent, StepResult
 from state.workflow_state import WorkflowState
+from utils.logger import setup_logger
 import config
+
+logger = setup_logger(__name__)
+
 
 class IntentAgent(BaseAgent):
     """Specializes in understanding user intent using Gemini."""
@@ -12,12 +16,14 @@ class IntentAgent(BaseAgent):
         genai.configure(api_key=config.GOOGLE_API_KEY)
         self.llm = genai.GenerativeModel(
             config.INTENT_LLM_MODEL,
-            generation_config={"response_mime_type": "application/json"} # Request JSON output directly
+            # Request JSON output directly
+            generation_config={"response_mime_type": "application/json"}
         )
 
     async def execute(self, state: WorkflowState) -> StepResult:
-        print("🧠 Intent Agent (Gemini): Parsing user request...")
-        
+        logger.info(
+            f"[{state.workflow_id}] [Intent] Agent: Starting intent parsing...")
+
         prompt = f"""
         Parse this UI modification request into a structured JSON object.
         User Request: "{state.user_request}"
@@ -31,15 +37,19 @@ class IntentAgent(BaseAgent):
         
         Return ONLY the raw JSON object.
         """
-        
+
         try:
             # Use generate_content_async for async calls
             response = await self.llm.generate_content_async(prompt)
-            
+
             # Gemini models configured for JSON output will have it in response.text
             parsed_intent = json.loads(response.text)
             state.intent = parsed_intent
-            
+
+            logger.info(
+                f"[{state.workflow_id}] Intent parsed successfully: {parsed_intent}")
             return StepResult(success=True, data={'intent': parsed_intent}, message="Intent parsed successfully with Gemini.")
         except Exception as e:
+            logger.error(
+                f"[{state.workflow_id}] Failed to parse intent: {str(e)}", exc_info=True)
             return StepResult(success=False, message=f"Failed to parse intent with Gemini: {e}")

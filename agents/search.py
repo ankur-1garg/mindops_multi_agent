@@ -5,19 +5,24 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from .base_agent import BaseAgent, StepResult
 from state.workflow_state import WorkflowState
+from utils.logger import setup_logger
 import requests
 import base64
+
+logger = setup_logger(__name__)
 
 
 class SearchAgent(BaseAgent):
     """Finds the right screen and component to modify."""
 
-    def __init__(self):
-        print("🔍 Search Agent: Initializing...")
+    def __init__(self, repo_path: str = None):
+        logger.info("[Search] Agent: Initializing...")
+        self.repo_path = repo_path
 
     async def execute(self, state: WorkflowState) -> StepResult:
         # For now, we'll always return the main landing page
-        print("🔍 Search Agent: Finding relevant screen...")
+        logger.info(
+            f"[{state.workflow_id}] [Search] Agent: Finding relevant screen...")
 
         # Create a fixed screen entry for the main landing page
         landing_page = {
@@ -28,7 +33,6 @@ class SearchAgent(BaseAgent):
         }
 
         state.screen = landing_page  # Update the shared state
-
+        logger.info(
+            f"[{state.workflow_id}] Found screen: {landing_page['screen_name']}")
         return StepResult(success=True, data={'screen': landing_page}, message=f"Found screen: {landing_page['screen_name']}")
-
-        return StepResult(success=True, data={'screen': best_screen}, message=f"Found screen: {best_screen['screen_name']}")

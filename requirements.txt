@@ -10,3 +10,24 @@ numpy
 faiss-cpu
 selenium
 webdriver_manager
+# Core Libraries
+python-dotenv
+google-generativeai
+Pillow
+
+# For Search Agent
+sentence-transformers
+numpy
+faiss-cpu
+
+# For API Server
+fastapi
+uvicorn[standard]
+python-multipart
+websockets
+
+# For Atlassian/Figma/Jira/GitHub integrations (from previous steps)
+atlassian-python-api
+figma-api
+jira
+PyGithub
