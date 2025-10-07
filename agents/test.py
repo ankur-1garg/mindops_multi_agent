@@ -13,7 +13,8 @@ logger = setup_logger(__name__)
 class TestAgent(BaseAgent):
     """Generates a test script for the code changes and provides it to the user."""
 
-    def __init__(self):
+    def __init__(self, repo_path: str): # Add repo_path here
+        self.repo_path = repo_path # <<< ADD this line
         genai.configure(api_key=config.GOOGLE_API_KEY)
         self.llm = genai.GenerativeModel(config.TEST_LLM_MODEL)
 

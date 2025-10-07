@@ -9,7 +9,6 @@ import os
 from api.models import WorkflowRequest, WorkflowResponse
 from agents.orchestrator import OrchestratorAgent
 from state.workflow_state import WorkflowState
-from catalog_builder import CatalogBuilder
 import config
 
 # --- WebSocket Manager ---
@@ -43,34 +42,13 @@ workflow_statuses: Dict[str, WorkflowState] = {}
 orchestrator = OrchestratorAgent(websocket_manager=manager)
 
 
-async def ensure_catalog_exists():
-    """Ensures the application catalog exists by running the crawler if needed."""
-    if not os.path.exists('output/catalog.json'):
-        print("\n🕷️ First-time setup: Running app crawler...")
-        builder = CatalogBuilder(
-            app_url="https://saas-website-builder.vercel.app/",
-            repo_path=config.REPO_PATH
-        )
-        await builder.run()
-        print(" Catalog build complete!")
-
-
 async def run_workflow_background(workflow_id: str, user_request: str, repo_url: str):
-    # First ensure we have the catalog
-    await ensure_catalog_exists()
-
-    # Then process the user's request
+    # Process the user's request directly using the provided repo URL
     final_state = await orchestrator.process_request(workflow_id, user_request, repo_url)
     workflow_statuses[workflow_id] = final_state
 
 # --- FastAPI App ---
 app = FastAPI(title="MindOps.AI Multi-Agent API")
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Run on server startup to ensure the catalog exists."""
-    await ensure_catalog_exists()
 
 app.add_middleware(
     CORSMiddleware,

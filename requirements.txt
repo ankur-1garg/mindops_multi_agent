@@ -1,21 +1,9 @@
 # Core Libraries
 python-dotenv
-Pillow              # For image manipulation (saving, loading)
-requests            # For GitHub API calls
-google-generativeai  # For Gemini API
-
-# For Search Agent
-sentence-transformers
-numpy
-faiss-cpu
-selenium
-webdriver_manager
-# Core Libraries
-python-dotenv
 google-generativeai
 Pillow
 
-# For Search Agent
+# For Search & Code Agents
 sentence-transformers
 numpy
 faiss-cpu
@@ -23,11 +11,4 @@ faiss-cpu
 # For API Server
 fastapi
 uvicorn[standard]
-python-multipart
 websockets
-
-# For Atlassian/Figma/Jira/GitHub integrations (from previous steps)
-atlassian-python-api
-figma-api
-jira
-PyGithub
